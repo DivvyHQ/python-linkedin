@@ -31,14 +31,14 @@ PERMISSIONS = enum('Permission',
                    MESSAGES='w_messages')
 
 ENDPOINTS = enum('LinkedInURL',
-                 PEOPLE='https://api.linkedin.com/v1/people',
-                 PEOPLE_SEARCH='https://api.linkedin.com/v1/people-search',
-                 GROUPS='https://api.linkedin.com/v1/groups',
-                 POSTS='https://api.linkedin.com/v1/posts',
-                 COMPANIES='https://api.linkedin.com/v1/companies',
-                 COMPANY_SEARCH='https://api.linkedin.com/v1/company-search',
-                 JOBS='https://api.linkedin.com/v1/jobs',
-                 JOB_SEARCH='https://api.linkedin.com/v1/job-search')
+                 PEOPLE='https://api.linkedin.com/v2/people',
+                 PEOPLE_SEARCH='https://api.linkedin.com/v2/people-search',
+                 GROUPS='https://api.linkedin.com/v2/groups',
+                 POSTS='https://api.linkedin.com/v2/posts',
+                 COMPANIES='https://api.linkedin.com/v2/companies',
+                 COMPANY_SEARCH='https://api.linkedin.com/v2/company-search',
+                 JOBS='https://api.linkedin.com/v2/jobs',
+                 JOB_SEARCH='https://api.linkedin.com/v2/job-search')
 
 NETWORK_UPDATES = enum('NetworkUpdate',
                        APPLICATION='APPS',
