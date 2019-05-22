@@ -146,25 +146,12 @@ class LinkedInApplication(object):
 
         return requests.request(method.upper(), url, **kw)
 
-    def get_profile(self, member_id=None, member_url=None, selectors=None,
-                    params=None, headers=None):
-        if member_id:
-            if type(member_id) is list:
-                # Batch request, ids as CSV.
-                url = '%s::(%s)' % (ENDPOINTS.ME_V2,
-                                    ','.join(member_id))
-            else:
-                url = '%s/id=%s' % (ENDPOINTS.ME_V2, str(member_id))
-        elif member_url:
-            url = '%s/url=%s' % (ENDPOINTS.ME_V2, quote_plus(member_url))
-        else:
-            url = '%s/~' % ENDPOINTS.ME_V2
-        if selectors:
-            url = '%s:(%s)' % (url, LinkedInSelector.parse(selectors))
-
+    def get_profile(self, params=None, headers=None):
+        url = ENDPOINTS.ME_V2
         response = self.make_request('GET', url, params=params, headers=headers)
         raise_for_error(response)
-        return response.json()
+        json_response = response.json()
+        return json_response
 
     def get_companies(self, company_ids=None, universal_names=None, selectors=None,
                       params=None, headers=None):
