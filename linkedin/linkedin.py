@@ -20,38 +20,14 @@ from .utils import enum, to_utf8, raise_for_error, json, StringIO
 __all__ = ['LinkedInAuthentication', 'LinkedInApplication', 'PERMISSIONS']
 
 PERMISSIONS = enum('Permission',
-                   COMPANY_ADMIN='rw_company_admin',
-                   BASIC_PROFILE='r_basicprofile',
-                   FULL_PROFILE='r_fullprofile',
-                   EMAIL_ADDRESS='r_emailaddress',
-                   NETWORK='r_network',
-                   CONTACT_INFO='r_contactinfo',
-                   NETWORK_UPDATES='rw_nus',
-                   GROUPS='rw_groups',
-                   MESSAGES='w_messages')
+                   ORG_ADMIN='rw_organization_admin',
+                   ORG_SOCIAL='w_organization_social',
+                   LITE_PROFILE='r_liteprofile',
+                   MEMBER_SOCIAL='w_member_social')
 
 ENDPOINTS = enum('LinkedInURL',
-                 PEOPLE='https://api.linkedin.com/v2/people',
-                 PEOPLE_SEARCH='https://api.linkedin.com/v2/people-search',
-                 GROUPS='https://api.linkedin.com/v2/groups',
-                 POSTS='https://api.linkedin.com/v2/posts',
-                 COMPANIES='https://api.linkedin.com/v2/companies',
-                 COMPANY_SEARCH='https://api.linkedin.com/v2/company-search',
-                 JOBS='https://api.linkedin.com/v2/jobs',
-                 JOB_SEARCH='https://api.linkedin.com/v2/job-search')
-
-NETWORK_UPDATES = enum('NetworkUpdate',
-                       APPLICATION='APPS',
-                       COMPANY='CMPY',
-                       CONNECTION='CONN',
-                       JOB='JOBS',
-                       GROUP='JGRP',
-                       PICTURE='PICT',
-                       EXTENDED_PROFILE='PRFX',
-                       CHANGED_PROFILE='PRFU',
-                       SHARED='SHAR',
-                       VIRAL='VIRL')
-
+                 ME_V2='https://api.linkedin.com/v2/me',
+                 COMPANIES_V2='https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee'),
 
 class LinkedInDeveloperAuthentication(object):
     """
@@ -175,163 +151,16 @@ class LinkedInApplication(object):
         if member_id:
             if type(member_id) is list:
                 # Batch request, ids as CSV.
-                url = '%s::(%s)' % (ENDPOINTS.PEOPLE,
+                url = '%s::(%s)' % (ENDPOINTS.ME_V2,
                                     ','.join(member_id))
             else:
-                url = '%s/id=%s' % (ENDPOINTS.PEOPLE, str(member_id))
+                url = '%s/id=%s' % (ENDPOINTS.ME_V2, str(member_id))
         elif member_url:
-            url = '%s/url=%s' % (ENDPOINTS.PEOPLE, quote_plus(member_url))
+            url = '%s/url=%s' % (ENDPOINTS.ME_V2, quote_plus(member_url))
         else:
-            url = '%s/~' % ENDPOINTS.PEOPLE
+            url = '%s/~' % ENDPOINTS.ME_V2
         if selectors:
             url = '%s:(%s)' % (url, LinkedInSelector.parse(selectors))
-
-        response = self.make_request('GET', url, params=params, headers=headers)
-        raise_for_error(response)
-        return response.json()
-
-    def search_profile(self, selectors=None, params=None, headers=None):
-        if selectors:
-            url = '%s:(%s)' % (ENDPOINTS.PEOPLE_SEARCH,
-                               LinkedInSelector.parse(selectors))
-        else:
-            url = ENDPOINTS.PEOPLE_SEARCH
-        response = self.make_request('GET', url, params=params, headers=headers)
-        raise_for_error(response)
-        return response.json()
-
-    def get_picture_urls(self, member_id=None, member_url=None,
-                         params=None, headers=None):
-        if member_id:
-            url = '%s/id=%s/picture-urls::(original)' % (ENDPOINTS.PEOPLE, str(member_id))
-        elif member_url:
-            url = '%s/url=%s/picture-urls::(original)' % (ENDPOINTS.PEOPLE,
-                                                          quote_plus(member_url))
-        else:
-            url = '%s/~/picture-urls::(original)' % ENDPOINTS.PEOPLE
-
-        response = self.make_request('GET', url, params=params, headers=headers)
-        raise_for_error(response)
-        return response.json()
-
-    def get_connections(self, member_id=None, member_url=None, selectors=None,
-                        params=None, headers=None):
-        if member_id:
-            url = '%s/id=%s/connections' % (ENDPOINTS.PEOPLE, str(member_id))
-        elif member_url:
-            url = '%s/url=%s/connections' % (ENDPOINTS.PEOPLE,
-                                             quote_plus(member_url))
-        else:
-            url = '%s/~/connections' % ENDPOINTS.PEOPLE
-        if selectors:
-            url = '%s:(%s)' % (url, LinkedInSelector.parse(selectors))
-
-        response = self.make_request('GET', url, params=params, headers=headers)
-        raise_for_error(response)
-        return response.json()
-
-    def get_memberships(self, member_id=None, member_url=None, group_id=None,
-                        selectors=None, params=None, headers=None):
-        if member_id:
-            url = '%s/id=%s/group-memberships' % (ENDPOINTS.PEOPLE, str(member_id))
-        elif member_url:
-            url = '%s/url=%s/group-memberships' % (ENDPOINTS.PEOPLE,
-                                                   quote_plus(member_url))
-        else:
-            url = '%s/~/group-memberships' % ENDPOINTS.PEOPLE
-
-        if group_id:
-            url = '%s/%s' % (url, str(group_id))
-
-        if selectors:
-            url = '%s:(%s)' % (url, LinkedInSelector.parse(selectors))
-
-        response = self.make_request('GET', url, params=params, headers=headers)
-        raise_for_error(response)
-        return response.json()
-
-    def get_group(self, group_id, selectors=None, params=None, headers=None):
-        url = '%s/%s' % (ENDPOINTS.GROUPS, str(group_id))
-
-        response = self.make_request('GET', url, params=params, headers=headers)
-        raise_for_error(response)
-        return response.json()
-
-    def get_posts(self, group_id, post_ids=None, selectors=None, params=None,
-                  headers=None):
-        url = '%s/%s/posts' % (ENDPOINTS.GROUPS, str(group_id))
-        if post_ids:
-            url = '%s::(%s)' % (url, ','.join(map(str, post_ids)))
-        if selectors:
-            url = '%s:(%s)' % (url, LinkedInSelector.parse(selectors))
-
-        response = self.make_request('GET', url, params=params, headers=headers)
-        raise_for_error(response)
-        return response.json()
-
-    def get_post_comments(self, post_id, selectors=None, params=None, headers=None):
-        url = '%s/%s/comments' % (ENDPOINTS.POSTS, post_id)
-        if selectors:
-            url = '%s:(%s)' % (url, LinkedInSelector.parse(selectors))
-
-        response = self.make_request('GET', url, params=params, headers=headers)
-        raise_for_error(response)
-        return response.json()
-
-    def join_group(self, group_id):
-        url = '%s/~/group-memberships/%s' % (ENDPOINTS.PEOPLE, str(group_id))
-        response = self.make_request('PUT', url,
-                                     data=json.dumps({'membershipState': {'code': 'member'}}))
-        raise_for_error(response)
-        return True
-
-    def leave_group(self, group_id):
-        url = '%s/~/group-memberships/%s' % (ENDPOINTS.PEOPLE, str(group_id))
-        response = self.make_request('DELETE', url)
-        raise_for_error(response)
-        return True
-
-    def submit_group_post(self, group_id, title, summary, submitted_url,
-                          submitted_image_url, content_title, description):
-        post = {
-            'title': title, 'summary': summary,
-            'content': {
-                'submitted-url': submitted_url,
-                'title': content_title,
-                'description': description
-            }
-        }
-        if submitted_image_url:
-            post['content']['submitted-image-url'] = submitted_image_url
-
-        url = '%s/%s/posts' % (ENDPOINTS.GROUPS, str(group_id))
-        response = self.make_request('POST', url, data=json.dumps(post))
-        raise_for_error(response)
-        return True
-
-    def like_post(self, post_id, action):
-        url = '%s/%s/relation-to-viewer/is-liked' % (ENDPOINTS.POSTS, str(post_id))
-        try:
-            self.make_request('PUT', url, data=json.dumps(action))
-        except (requests.ConnectionError, requests.HTTPError) as error:
-            raise LinkedInError(error.message)
-        else:
-            return True
-
-    def comment_post(self, post_id, comment):
-        post = {
-            'text': comment
-        }
-        url = '%s/%s/comments' % (ENDPOINTS.POSTS, str(post_id))
-        try:
-            self.make_request('POST', url, data=json.dumps(post))
-        except (requests.ConnectionError, requests.HTTPError) as error:
-            raise LinkedInError(error.message)
-        else:
-            return True
-
-    def get_company_by_email_domain(self, email_domain, params=None, headers=None):
-        url = '%s?email-domain=%s' % (ENDPOINTS.COMPANIES, email_domain)
 
         response = self.make_request('GET', url, params=params, headers=headers)
         raise_for_error(response)
@@ -340,7 +169,7 @@ class LinkedInApplication(object):
     def get_companies(self, company_ids=None, universal_names=None, selectors=None,
                       params=None, headers=None):
         identifiers = []
-        url = ENDPOINTS.COMPANIES
+        url = ENDPOINTS.COMPANIES_V2
         if company_ids:
             identifiers += map(str, company_ids)
 
@@ -350,43 +179,6 @@ class LinkedInApplication(object):
         if identifiers:
             url = '%s::(%s)' % (url, ','.join(identifiers))
 
-        if selectors:
-            url = '%s:(%s)' % (url, LinkedInSelector.parse(selectors))
-
-        response = self.make_request('GET', url, params=params, headers=headers)
-        raise_for_error(response)
-        return response.json()
-
-    def get_company_updates(self, company_id, params=None, headers=None):
-        url = '%s/%s/updates' % (ENDPOINTS.COMPANIES, str(company_id))
-        response = self.make_request('GET', url, params=params, headers=headers)
-        raise_for_error(response)
-        return response.json()
-
-    def get_company_products(self, company_id, selectors=None, params=None,
-                             headers=None):
-        url = '%s/%s/products' % (ENDPOINTS.COMPANIES, str(company_id))
-        if selectors:
-            url = '%s:(%s)' % (url, LinkedInSelector.parse(selectors))
-        response = self.make_request('GET', url, params=params, headers=headers)
-        raise_for_error(response)
-        return response.json()
-
-    def follow_company(self, company_id):
-        url = '%s/~/following/companies' % ENDPOINTS.PEOPLE
-        post = {'id': company_id}
-        response = self.make_request('POST', url, data=json.dumps(post))
-        raise_for_error(response)
-        return True
-
-    def unfollow_company(self, company_id):
-        url = '%s/~/following/companies/id=%s' % (ENDPOINTS.PEOPLE, str(company_id))
-        response = self.make_request('DELETE', url)
-        raise_for_error(response)
-        return True
-
-    def search_company(self, selectors=None, params=None, headers=None):
-        url = ENDPOINTS.COMPANY_SEARCH
         if selectors:
             url = '%s:(%s)' % (url, LinkedInSelector.parse(selectors))
 
@@ -414,34 +206,9 @@ class LinkedInApplication(object):
         if submitted_image_url:
             post['content']['submitted-image-url'] = submitted_image_url
 
-        url = '%s/%s/shares' % (ENDPOINTS.COMPANIES, company_id)
+        url = '%s/%s/shares' % (ENDPOINTS.COMPANIES_V2, company_id)
 
         response = self.make_request('POST', url, data=json.dumps(post))
-        raise_for_error(response)
-        return response.json()
-
-    def get_job(self, job_id, selectors=None, params=None, headers=None):
-        url = '%s/%s' % (ENDPOINTS.JOBS, str(job_id))
-        url = '%s:(%s)' % (url, LinkedInSelector.parse(selectors))
-        response = self.make_request('GET', url, params=params, headers=headers)
-        raise_for_error(response)
-        return response.json()
-
-    def get_job_bookmarks(self, selectors=None, params=None, headers=None):
-        url = '%s/~/job-bookmarks' % ENDPOINTS.PEOPLE
-        if selectors:
-            url = '%s:(%s)' % (url, LinkedInSelector.parse(selectors))
-
-        response = self.make_request('GET', url, params=params, headers=headers)
-        raise_for_error(response)
-        return response.json()
-
-    def search_job(self, selectors=None, params=None, headers=None):
-        url = ENDPOINTS.JOB_SEARCH
-        if selectors:
-            url = '%s:(%s)' % (url, LinkedInSelector.parse(selectors))
-
-        response = self.make_request('GET', url, params=params, headers=headers)
         raise_for_error(response)
         return response.json()
 
@@ -464,80 +231,7 @@ class LinkedInApplication(object):
         if submitted_image_url:
             post['content']['submitted-image-url'] = submitted_image_url
 
-        url = '%s/~/shares' % ENDPOINTS.PEOPLE
+        url = '%s/~/shares' % ENDPOINTS.ME_V2
         response = self.make_request('POST', url, data=json.dumps(post))
         raise_for_error(response)
         return response.json()
-
-    def get_network_updates(self, types, member_id=None,
-                            self_scope=True, params=None, headers=None):
-        if member_id:
-            url = '%s/id=%s/network/updates' % (ENDPOINTS.PEOPLE,
-                                                str(member_id))
-        else:
-            url = '%s/~/network/updates' % ENDPOINTS.PEOPLE
-
-        if not params:
-            params = {}
-
-        if types:
-            params.update({'type': types})
-
-        if self_scope is True:
-            params.update({'scope': 'self'})
-
-        response = self.make_request('GET', url, params=params, headers=headers)
-        raise_for_error(response)
-        return response.json()
-
-    def get_network_update(self, types, update_key,
-                           self_scope=True, params=None, headers=None):
-        url = '%s/~/network/updates/key=%s' % (ENDPOINTS.PEOPLE, str(update_key))
-
-        if not params:
-            params = {}
-
-        if types:
-            params.update({'type': types})
-
-        if self_scope is True:
-            params.update({'scope': 'self'})
-
-        response = self.make_request('GET', url, params=params, headers=headers)
-        raise_for_error(response)
-        return response.json()
-
-    def get_network_status(self, params=None, headers=None):
-        url = '%s/~/network/network-stats' % ENDPOINTS.PEOPLE
-        response = self.make_request('GET', url, params=params, headers=headers)
-        raise_for_error(response)
-        return response.json()
-
-    def send_invitation(self, invitation):
-        assert type(invitation) == LinkedInInvitation, 'LinkedInInvitation required'
-        url = '%s/~/mailbox' % ENDPOINTS.PEOPLE
-        response = self.make_request('POST', url,
-                                     data=json.dumps(invitation.json))
-        raise_for_error(response)
-        return True
-
-    def send_message(self, message):
-        assert type(message) == LinkedInMessage, 'LinkedInInvitation required'
-        url = '%s/~/mailbox' % ENDPOINTS.PEOPLE
-        response = self.make_request('POST', url,
-                                     data=json.dumps(message.json))
-        raise_for_error(response)
-        return True
-
-    def comment_on_update(self, update_key, comment):
-        comment = {'comment': comment}
-        url = '%s/~/network/updates/key=%s/update-comments' % (ENDPOINTS.PEOPLE, update_key)
-        response = self.make_request('POST', url, data=json.dumps(comment))
-        raise_for_error(response)
-        return True
-
-    def like_update(self, update_key, is_liked=True):
-        url = '%s/~/network/updates/key=%s/is-liked' % (ENDPOINTS.PEOPLE, update_key)
-        response = self.make_request('PUT', url, data=json.dumps(is_liked))
-        raise_for_error(response)
-        return True
