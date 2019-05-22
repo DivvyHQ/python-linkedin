@@ -155,24 +155,9 @@ class LinkedInApplication(object):
         json_response = response.json()
         return json_response
 
-    def get_companies(self, company_ids=None, universal_names=None, selectors=None,
-                      params=None, headers=None):
-        # FIXME: I'll have to write this get_companies function from scratch
-        identifiers = []
+    def get_companies(self, params=None):
         url = ENDPOINTS.COMPANIES_V2
-        if company_ids:
-            identifiers += map(str, company_ids)
-
-        if universal_names:
-            identifiers += ['universal-name=%s' % un for un in universal_names]
-
-        if identifiers:
-            url = '%s::(%s)' % (url, ','.join(identifiers))
-
-        if selectors:
-            url = '%s:(%s)' % (url, LinkedInSelector.parse(selectors))
-
-        response = self.make_request('GET', url, params=params, headers=headers)
+        response = self.make_request('GET', url, params=params)
         raise_for_error(response)
         return response.json()
 
