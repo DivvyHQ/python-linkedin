@@ -166,7 +166,7 @@ class LinkedInApplication(object):
     def submit_company_share(self, company_id, comment=None, title=None,
                             description=None, submitted_url=None,
                             submitted_image_url=None, visibility_code='anyone'):
-        return {'json', 'json'}
+        return
         # post = {
         #     'visibility': {
         #         'code': visibility_code,
@@ -192,48 +192,16 @@ class LinkedInApplication(object):
         # raise_for_error(response)
         # return response.json()
 
-    def submit_share(self, comment=None, title=None, description=None,
+    def submit_text_share(self, comment=None, title=None, description=None,
                      submitted_url=None, submitted_image_url=None,
                      visibility_code='PUBLIC'):
+        # Basic text share
+
         post = {
-            "visibility": {
-                "com.linkedin.ugc.MemberNetworkVisibility": visibility_code
+            'visibility': {
+                'code': visibility_code,
             },
-        }
-
-        if submitted_image_url is not None:
-            print('Share image')
-            # TODO: This is a pretty involved process with the new api
-            # # Register image to be uploaded
-            # image = self.make_request('POST', url, data=json.dumps(post))
-
-            # # Upload file
-
-            # # Create image share
-            # post["specificContent"] = {
-            #     "com.linkedin.ugc.ShareContent": {
-            #         "shareCommentary": {
-            #             "text": comment if comment is not None else ""
-            #         },
-            #         "shareMediaCategory": "IMAGE",
-            #         "media": [
-            #             {
-            #                 "status": "READY",
-            #                 "description": {
-            #                     "text": description if description is not None else ""
-            #                 },
-            #                 "media": image,
-            #                 "title": {
-            #                     "text": title if title is not None else ""
-            #                 }
-            #             }
-            #         ]
-            #     }
-            # }
-
-        else:
-            # Basic text share
-            post["specificContent"] = {
+            'specificContent': {
                 "com.linkedin.ugc.ShareContent": {
                     "shareCommentary": {
                         "text": comment if comment is not None else ""
@@ -241,8 +209,46 @@ class LinkedInApplication(object):
                     "shareMediaCategory": "NONE"
                 }
             }
+        }
 
         url = ENDPOINTS.UGC_POSTS_V2
         response = self.make_request('POST', url, data=json.dumps(post))
         raise_for_error(response)
         return response.json()
+
+    def submit_image_share(self, comment=None, title=None, description=None,
+                     submitted_url=None, submitted_image_url=None,
+                     visibility_code='PUBLIC'):
+        return
+        # TODO:
+        # 1 Register image to be uploaded
+        # image = self.make_request('POST', url, data=json.dumps(post))
+
+        # 2. Upload image file
+
+        # 3. Share the image
+        # post = {
+        #     'visibility': {
+        #         'code': visibility_code,
+        #     },
+        #     'specificContent': {
+        #         "com.linkedin.ugc.ShareContent": {
+        #             "shareCommentary": {
+        #                 "text": comment if comment is not None else ""
+        #             },
+        #             "shareMediaCategory": "IMAGE",
+        #             "media": [
+        #                 {
+        #                     "status": "READY",
+        #                     "description": {
+        #                         "text": description if description is not None else ""
+        #                     },
+        #                     "media": image,
+        #                     "title": {
+        #                         "text": title if title is not None else ""
+        #                     }
+        #                 }
+        #             ]
+        #         }
+        #     }
+        # }
