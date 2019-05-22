@@ -13,7 +13,7 @@ import requests
 from requests_oauthlib import OAuth1
 
 from .exceptions import LinkedInError
-from .models import AccessToken, LinkedInInvitation, LinkedInMessage
+from .models import AccessToken
 from .utils import enum, to_utf8, raise_for_error, json, StringIO
 
 
@@ -115,8 +115,6 @@ class LinkedInSelector(object):
 
 
 class LinkedInApplication(object):
-    BASE_URL = 'https://api.linkedin.com'
-
     def __init__(self, authentication=None, token=None):
         assert authentication or token, 'Either authentication instance or access token is required'
         self.authentication = authentication
