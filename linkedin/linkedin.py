@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+import collections
 import contextlib
 import hashlib
 import random
@@ -13,11 +14,12 @@ import requests
 from requests_oauthlib import OAuth1
 
 from .exceptions import LinkedInError
-from .models import AccessToken
 from .utils import enum, to_utf8, raise_for_error, json, StringIO
 
 
 __all__ = ['LinkedInAuthentication', 'LinkedInApplication', 'PERMISSIONS']
+
+AccessToken = collections.namedtuple('AccessToken', ['access_token', 'expires_in'])
 
 PERMISSIONS = enum('Permission',
                    ORG_ADMIN='rw_organization_admin',
