@@ -29,7 +29,9 @@ PERMISSIONS = enum('Permission',
 
 ENDPOINTS = enum('LinkedInURL',
                  ME_V2='https://api.linkedin.com/v2/me',
-                 COMPANIES_V2='https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee'),
+                 COMPANIES_V2='https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee',
+                 UGC_POSTS_V2='https://api.linkedin.com/v2/ugcPosts',
+                 IMAGE_UPLOAD_V2='https://api.linkedin.com/v2/assets?action=registerUpload'),
 
 class LinkedInDeveloperAuthentication(object):
     """
@@ -155,6 +157,7 @@ class LinkedInApplication(object):
 
     def get_companies(self, company_ids=None, universal_names=None, selectors=None,
                       params=None, headers=None):
+        # FIXME: I'll have to write this get_companies function from scratch
         identifiers = []
         url = ENDPOINTS.COMPANIES_V2
         if company_ids:
@@ -173,52 +176,88 @@ class LinkedInApplication(object):
         raise_for_error(response)
         return response.json()
 
-    def submit_company_share(self, company_id, comment=None, title=None, description=None,
-                             submitted_url=None, submitted_image_url=None,
-                             visibility_code='anyone'):
+    # TODO: Need to figure out how this will work in the new API
+    # NOTE: This is the helper method that we wrote on top of python-linkedin
+    def submit_company_share(self, company_id, comment=None, title=None,
+                            description=None, submitted_url=None,
+                            submitted_image_url=None, visibility_code='anyone'):
+        return {'json', 'json'}
+        # post = {
+        #     'visibility': {
+        #         'code': visibility_code,
+        #     },
+        # }
+        # if comment is not None:
+        #     post['comment'] = comment
+        # if title is not None and submitted_url is not None:
+        #     post['content'] = {
+        #         'title': title,
+        #         'submitted-url': submitted_url,
+        #         'description': description,
+        #     }
+        # if submitted_image_url:
+        #     # You can't send submitted-image-url without a submitted-url though
+        #     content = post.get('content', {})
+        #     content.update({'submitted-image-url':  submitted_image_url})
+        #     post.update({'content': content})
 
-        post = {
-            'visibility': {
-                'code': visibility_code,
-            },
-        }
-        if comment is not None:
-            post['comment'] = comment
-        if title is not None and submitted_url is not None:
-            post['content'] = {
-                'title': title,
-                'submitted-url': submitted_url,
-                'description': description,
-            }
-        if submitted_image_url:
-            post['content']['submitted-image-url'] = submitted_image_url
+        # url = '%s/%s/shares' % (ENDPOINTS.COMPANIES_V2, company_id)
 
-        url = '%s/%s/shares' % (ENDPOINTS.COMPANIES_V2, company_id)
-
-        response = self.make_request('POST', url, data=json.dumps(post))
-        raise_for_error(response)
-        return response.json()
+        # response = self.make_request('POST', url, data=json.dumps(post))
+        # raise_for_error(response)
+        # return response.json()
 
     def submit_share(self, comment=None, title=None, description=None,
                      submitted_url=None, submitted_image_url=None,
-                     visibility_code='anyone'):
+                     visibility_code='PUBLIC'):
         post = {
-            'visibility': {
-                'code': visibility_code,
+            "visibility": {
+                "com.linkedin.ugc.MemberNetworkVisibility": visibility_code
             },
         }
-        if comment is not None:
-            post['comment'] = comment
-        if title is not None and submitted_url is not None:
-            post['content'] = {
-                'title': title,
-                'submitted-url': submitted_url,
-                'description': description,
-            }
-        if submitted_image_url:
-            post['content']['submitted-image-url'] = submitted_image_url
 
-        url = '%s/~/shares' % ENDPOINTS.ME_V2
+        if submitted_image_url is not None:
+            print('Share image')
+            # TODO: This is a pretty involved process with the new api
+            # # Register image to be uploaded
+            # image = self.make_request('POST', url, data=json.dumps(post))
+
+            # # Upload file
+
+            # # Create image share
+            # post["specificContent"] = {
+            #     "com.linkedin.ugc.ShareContent": {
+            #         "shareCommentary": {
+            #             "text": comment if comment is not None else ""
+            #         },
+            #         "shareMediaCategory": "IMAGE",
+            #         "media": [
+            #             {
+            #                 "status": "READY",
+            #                 "description": {
+            #                     "text": description if description is not None else ""
+            #                 },
+            #                 "media": image,
+            #                 "title": {
+            #                     "text": title if title is not None else ""
+            #                 }
+            #             }
+            #         ]
+            #     }
+            # }
+
+        else:
+            # Basic text share
+            post["specificContent"] = {
+                "com.linkedin.ugc.ShareContent": {
+                    "shareCommentary": {
+                        "text": comment if comment is not None else ""
+                    },
+                    "shareMediaCategory": "NONE"
+                }
+            }
+
+        url = ENDPOINTS.UGC_POSTS_V2
         response = self.make_request('POST', url, data=json.dumps(post))
         raise_for_error(response)
         return response.json()
