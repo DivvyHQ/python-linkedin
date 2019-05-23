@@ -161,46 +161,20 @@ class LinkedInApplication(object):
         raise_for_error(response)
         return response.json()
 
-    # TODO: Need to figure out how this will work in the new API
-    # NOTE: This is the helper method that we wrote on top of python-linkedin
-    def submit_company_share(self, company_id, comment=None, title=None,
-                            description=None, submitted_url=None,
-                            submitted_image_url=None, visibility_code='anyone'):
-        return
-        # post = {
-        #     'visibility': {
-        #         'code': visibility_code,
-        #     },
-        # }
-        # if comment is not None:
-        #     post['comment'] = comment
-        # if title is not None and submitted_url is not None:
-        #     post['content'] = {
-        #         'title': title,
-        #         'submitted-url': submitted_url,
-        #         'description': description,
-        #     }
-        # if submitted_image_url:
-        #     # You can't send submitted-image-url without a submitted-url though
-        #     content = post.get('content', {})
-        #     content.update({'submitted-image-url':  submitted_image_url})
-        #     post.update({'content': content})
-
-        # url = '%s/%s/shares' % (ENDPOINTS.COMPANIES_V2, company_id)
-
-        # response = self.make_request('POST', url, data=json.dumps(post))
-        # raise_for_error(response)
-        # return response.json()
-
-    def submit_text_share(self, comment=None, title=None, description=None,
-                     submitted_url=None, submitted_image_url=None,
-                     visibility_code='PUBLIC'):
+    def submit_text_share(self, company_id=None, comment=None, title=None,
+                     description=None, submitted_url=None,
+                     submitted_image_url=None, visibility_code='PUBLIC'):
         # Basic text share
 
+        if company_id is None:
+            author = self.get_profile()
+            author_id = author['ID']
+        else:
+            author_id = company_id
+
         post = {
-            'visibility': {
-                'code': visibility_code,
-            },
+            'author': author_id,
+            'lifecycle': 'PUBLISHED',
             'specificContent': {
                 "com.linkedin.ugc.ShareContent": {
                     "shareCommentary": {
@@ -208,6 +182,9 @@ class LinkedInApplication(object):
                     },
                     "shareMediaCategory": "NONE"
                 }
+            },
+            'visibility': {
+                'code': visibility_code,
             }
         }
 
@@ -216,10 +193,16 @@ class LinkedInApplication(object):
         raise_for_error(response)
         return response.json()
 
-    def submit_image_share(self, comment=None, title=None, description=None,
-                     submitted_url=None, submitted_image_url=None,
-                     visibility_code='PUBLIC'):
-        return
+    def submit_image_share(self, company_id=None, comment=None, title=None,
+                     description=None, submitted_url=None,
+                     submitted_image_url=None, visibility_code='PUBLIC'):
+
+        if company_id is None:
+            author = self.get_profile()
+            author_id = author['ID']
+        else:
+            author_id = company_id
+
         # TODO:
         # 1 Register image to be uploaded
         # image = self.make_request('POST', url, data=json.dumps(post))
@@ -242,7 +225,7 @@ class LinkedInApplication(object):
         #                     "status": "READY",
         #                     "description": {
         #                         "text": description if description is not None else ""
-        #                     },
+        #                     },    
         #                     "media": image,
         #                     "title": {
         #                         "text": title if title is not None else ""
