@@ -8,7 +8,7 @@ import random
 try:
     from urllib.parse import quote, quote_plus
 except ImportError:
-    from urllib import quote, quote_plus
+    from urllib import quote, quote_plus, urlopen
 
 import requests
 from requests_oauthlib import OAuth1
@@ -162,8 +162,7 @@ class LinkedInApplication(object):
         return response.json()
 
     def submit_text_share(self, company_id=None, comment=None, title=None,
-                     description=None, submitted_url=None,
-                     submitted_image_url=None, visibility_code='PUBLIC'):
+                     description=None, visibility_code='PUBLIC'):
         # Basic text share
 
         if company_id is None:
@@ -194,8 +193,8 @@ class LinkedInApplication(object):
         return response.json()
 
     def submit_image_share(self, company_id=None, comment=None, title=None,
-                     description=None, submitted_url=None,
-                     submitted_image_url=None, visibility_code='PUBLIC'):
+                     description=None, submitted_image_url=None,
+                     visibility_code='PUBLIC'):
 
         if company_id is None:
             author = self.get_profile()
@@ -203,35 +202,59 @@ class LinkedInApplication(object):
         else:
             author_id = company_id
 
-        # TODO:
+
+        # Sharing a file requires that these steps happen in this order.
         # 1 Register image to be uploaded
-        # image = self.make_request('POST', url, data=json.dumps(post))
+        image_register_response = self.make_request(
+            'POST',
+            ENDPOINTS.IMAGE_UPLOAD_V2
+        )
 
         # 2. Upload image file
+        upload_url = (image_register_response['value']
+            ['uploadMechanism']
+            ['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest']
+            ['uploadUrl']
+        )
+        data = urlopen(submitted_image_url).read()
+        self.make_request('POST',
+            upload_url, data=data,
+            headers='Authorization: Bearer redacted'
+        )
+
+        image = image_register_response['value']['asset']
 
         # 3. Share the image
-        # post = {
-        #     'visibility': {
-        #         'code': visibility_code,
-        #     },
-        #     'specificContent': {
-        #         "com.linkedin.ugc.ShareContent": {
-        #             "shareCommentary": {
-        #                 "text": comment if comment is not None else ""
-        #             },
-        #             "shareMediaCategory": "IMAGE",
-        #             "media": [
-        #                 {
-        #                     "status": "READY",
-        #                     "description": {
-        #                         "text": description if description is not None else ""
-        #                     },    
-        #                     "media": image,
-        #                     "title": {
-        #                         "text": title if title is not None else ""
-        #                     }
-        #                 }
-        #             ]
-        #         }
-        #     }
-        # }
+        post = {
+            'author': author_id,
+            'lifecycle': 'PUBLISHED',
+            'visibility': {
+                'code': visibility_code,
+            },
+            'specificContent': {
+                "com.linkedin.ugc.ShareContent": {
+                    "shareCommentary": {
+                        "text": comment if comment is not None else ""
+                    },
+                    "shareMediaCategory": "IMAGE",
+                    "media": [
+                        {
+                            "status": "READY",
+                            "description": {
+                                "text": description if description is not None else ""
+                            },    
+                            "media": image,
+                            "title": {
+                                "text": title if title is not None else ""
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+
+        url = ENDPOINTS.UGC_POSTS_V2
+        response = self.make_request('POST', url, data=json.dumps(post))
+        raise_for_error(response)
+        return response.json()
+
