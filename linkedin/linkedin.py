@@ -87,7 +87,7 @@ class LinkedInAuthentication(object):
 
     def _make_new_state(self):
         return hashlib.md5(
-            '{}{}'.format(random.randrange(0, 2 ** 63), self.secret).encode("utf8")
+            '{}{}'.format(random.randrange(0, 2 ** 63), self.secret).encode('utf8')
         ).hexdigest()
 
     def get_access_token(self, timeout=60):
@@ -175,11 +175,11 @@ class LinkedInApplication(object):
             'author': author_id,
             'lifecycle': 'PUBLISHED',
             'specificContent': {
-                "com.linkedin.ugc.ShareContent": {
-                    "shareCommentary": {
-                        "text": comment if comment is not None else ""
+                'com.linkedin.ugc.ShareContent': {
+                    'shareCommentary': {
+                        'text': comment if comment is not None else ''
                     },
-                    "shareMediaCategory": "NONE"
+                    'shareMediaCategory': 'NONE'
                 }
             },
             'visibility': {
@@ -232,20 +232,20 @@ class LinkedInApplication(object):
                 'code': visibility_code,
             },
             'specificContent': {
-                "com.linkedin.ugc.ShareContent": {
-                    "shareCommentary": {
-                        "text": comment if comment is not None else ""
+                'com.linkedin.ugc.ShareContent': {
+                    'shareCommentary': {
+                        'text': comment if comment is not None else ''
                     },
-                    "shareMediaCategory": "IMAGE",
-                    "media": [
+                    'shareMediaCategory': 'IMAGE',
+                    'media': [
                         {
-                            "status": "READY",
-                            "description": {
-                                "text": description if description is not None else ""
+                            'status': 'READY',
+                            'description': {
+                                'text': description if description is not None else ''
                             },    
-                            "media": image,
-                            "title": {
-                                "text": title if title is not None else ""
+                            'media': image,
+                            'title': {
+                                'text': title if title is not None else ''
                             }
                         }
                     ]
