@@ -162,14 +162,14 @@ class LinkedInApplication(object):
         return response.json()
 
     def submit_text_share(self, company_id=None, comment=None, title=None,
-                     description=None, visibility_code='PUBLIC'):
+                          description=None, visibility_code='PUBLIC'):
         # Basic text share
 
-        if company_id is None:
+        if company_id:
+            author_id = company_id
+        else:
             author = self.get_profile()
             author_id = author['ID']
-        else:
-            author_id = company_id
 
         post = {
             'author': author_id,
