@@ -21,12 +21,6 @@ __all__ = ['LinkedInAuthentication', 'LinkedInApplication', 'PERMISSIONS']
 
 AccessToken = collections.namedtuple('AccessToken', ['access_token', 'expires_in'])
 
-PERMISSIONS = ['Permission',
-                    'rw_organization_admin',
-                    'w_organization_social',
-                    'r_liteprofile',
-                    'w_member_social']
-
 ENDPOINTS = enum('LinkedInURL',
                  ME_V2='https://api.linkedin.com/v2/me',
                  COMPANIES_V2='https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee',
