@@ -21,11 +21,11 @@ __all__ = ['LinkedInAuthentication', 'LinkedInApplication', 'PERMISSIONS']
 
 AccessToken = collections.namedtuple('AccessToken', ['access_token', 'expires_in'])
 
-PERMISSIONS = enum('Permission',
-                   ORG_ADMIN='rw_organization_admin',
-                   ORG_SOCIAL='w_organization_social',
-                   LITE_PROFILE='r_liteprofile',
-                   MEMBER_SOCIAL='w_member_social')
+PERMISSIONS = ['Permission',
+                    'rw_organization_admin',
+                    'w_organization_social',
+                    'r_liteprofile',
+                    'w_member_social']
 
 ENDPOINTS = enum('LinkedInURL',
                  ME_V2='https://api.linkedin.com/v2/me',
@@ -59,11 +59,11 @@ class LinkedInAuthentication(object):
     AUTHORIZATION_URL = 'https://www.linkedin.com/uas/oauth2/authorization'
     ACCESS_TOKEN_URL = 'https://www.linkedin.com/uas/oauth2/accessToken'
 
-    def __init__(self, key, secret, redirect_uri, permissions=None):
+    def __init__(self, key, secret, redirect_uri, permissions=[]):
         self.key = key
         self.secret = secret
         self.redirect_uri = redirect_uri
-        self.permissions = permissions or []
+        self.permissions = permissions
         self.state = None
         self.authorization_code = None
         self.token = None
