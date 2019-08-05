@@ -14,18 +14,19 @@ import requests
 from requests_oauthlib import OAuth1
 
 from .exceptions import LinkedInError
-from .utils import enum, to_utf8, raise_for_error, json, StringIO
+from .utils import to_utf8, raise_for_error, json, StringIO
 
 
 __all__ = ['LinkedInAuthentication', 'LinkedInApplication', 'PERMISSIONS']
 
 AccessToken = collections.namedtuple('AccessToken', ['access_token', 'expires_in'])
 
-ENDPOINTS = enum('LinkedInURL',
-                 ME_V2='https://api.linkedin.com/v2/me',
-                 COMPANIES_V2='https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee',
-                 UGC_POSTS_V2='https://api.linkedin.com/v2/ugcPosts',
-                 IMAGE_UPLOAD_V2='https://api.linkedin.com/v2/assets?action=registerUpload'),
+ENDPOINTS = {
+                'ME_V2': 'https://api.linkedin.com/v2/me',
+                'COMPANIES_V2': 'https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee',
+                'UGC_POSTS_V2': 'https://api.linkedin.com/v2/ugcPosts',
+                'IMAGE_UPLOAD_V2': 'https://api.linkedin.com/v2/assets?action=registerUpload'
+            },
 
 class LinkedInDeveloperAuthentication(object):
     """
@@ -143,14 +144,14 @@ class LinkedInApplication(object):
         return requests.request(method.upper(), url, **kw)
 
     def get_profile(self, params=None, headers=None):
-        url = ENDPOINTS.ME_V2
+        url = ENDPOINTS['ME_V2']
         response = self.make_request('GET', url, params=params, headers=headers)
         raise_for_error(response)
         json_response = response.json()
         return json_response
 
     def get_companies(self, params=None):
-        url = ENDPOINTS.COMPANIES_V2
+        url = ENDPOINTS['COMPANIES_V2']
         response = self.make_request('GET', url, params=params)
         raise_for_error(response)
         return response.json()
@@ -181,7 +182,7 @@ class LinkedInApplication(object):
             }
         }
 
-        url = ENDPOINTS.UGC_POSTS_V2
+        url = ENDPOINTS['UGC_POSTS_V2']
         response = self.make_request('POST', url, data=json.dumps(post))
         raise_for_error(response)
         return response.json()
@@ -201,7 +202,7 @@ class LinkedInApplication(object):
         # 1 Register image to be uploaded
         image_register_response = self.make_request(
             'POST',
-            ENDPOINTS.IMAGE_UPLOAD_V2
+            ENDPOINTS['IMAGE_UPLOAD_V2']
         )
 
         # 2. Upload image file
@@ -247,7 +248,7 @@ class LinkedInApplication(object):
             }
         }
 
-        url = ENDPOINTS.UGC_POSTS_V2
+        url = ENDPOINTS['UGC_POSTS_V2']
         response = self.make_request('POST', url, data=json.dumps(post))
         raise_for_error(response)
         return response.json()
