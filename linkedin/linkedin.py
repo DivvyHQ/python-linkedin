@@ -26,7 +26,7 @@ ENDPOINTS = {
                 'COMPANIES_V2': 'https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee',
                 'UGC_POSTS_V2': 'https://api.linkedin.com/v2/ugcPosts',
                 'IMAGE_UPLOAD_V2': 'https://api.linkedin.com/v2/assets?action=registerUpload'
-            },
+            }
 
 class LinkedInDeveloperAuthentication(object):
     """
