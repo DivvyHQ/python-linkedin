@@ -166,7 +166,7 @@ class LinkedInApplication(object):
             author_id = company_id
         else:
             author = self.get_profile()
-            author_id = author['ID']
+            author_id = author['id']
 
         post = {
             'author': author_id,
@@ -195,7 +195,7 @@ class LinkedInApplication(object):
 
         if company_id is None:
             author = self.get_profile()
-            author_id = author['ID']
+            author_id = author['id']
         else:
             author_id = company_id
 
