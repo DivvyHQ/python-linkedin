@@ -25,6 +25,7 @@ ENDPOINTS = {
                 'ME_V2': 'https://api.linkedin.com/v2/me',
                 'COMPANIES_V2': 'https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee',
                 'UGC_POSTS_V2': 'https://api.linkedin.com/v2/ugcPosts',
+                'TEXT_SHARE_V2': 'https://api.linkedin.com/v2/shares',
                 'IMAGE_UPLOAD_V2': 'https://api.linkedin.com/v2/assets?action=registerUpload'
             }
 
@@ -158,33 +159,27 @@ class LinkedInApplication(object):
         raise_for_error(response)
         return response.json()
 
-    def submit_text_share(self, company_id=None, comment=None, title=None,
-                          description=None, visibility_code='PUBLIC'):
+    def submit_text_share(self, company_id=None, subject=None, text=None):
         # Basic text share
 
         if company_id:
-            author_id = company_id
+            owner_id = company_id
         else:
-            author = self.get_profile()
-            author_id = author['id']
+            owner = self.get_profile()
+            owner_id = owner['id']
 
         post = {
-            'author': author_id,
-            'lifecycle': 'PUBLISHED',
-            'specificContent': {
-                'com.linkedin.ugc.ShareContent': {
-                    'shareCommentary': {
-                        'text': comment if comment is not None else ''
-                    },
-                    'shareMediaCategory': 'NONE'
-                }
+            "distribution": {
+                "linkedInDistributionTarget": {} # required to make publicly visible
             },
-            'visibility': {
-                'code': visibility_code,
+            "owner": owner_id,
+            "subject": subject,
+            "text": {
+                "text": text
             }
         }
 
-        url = ENDPOINTS['UGC_POSTS_V2']
+        url = ENDPOINTS['TEXT_SHARE_V2']
         response = self.make_request('POST', url, data=json.dumps(post))
         raise_for_error(response)
         return response.json()
