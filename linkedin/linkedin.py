@@ -23,7 +23,8 @@ AccessToken = collections.namedtuple('AccessToken', ['access_token', 'expires_in
 
 ENDPOINTS = {
                 'ME_V2': 'https://api.linkedin.com/v2/me',
-                'COMPANIES_V2': 'https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee',
+                'USER_ORG_V2': 'https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee',
+                'ORG_V2': 'https://api.linkedin.com/v2/organizations',
                 'UGC_POSTS_V2': 'https://api.linkedin.com/v2/ugcPosts',
                 'TEXT_SHARE_V2': 'https://api.linkedin.com/v2/shares',
                 'IMAGE_UPLOAD_V2': 'https://api.linkedin.com/v2/assets?action=registerUpload'
@@ -146,18 +147,25 @@ class LinkedInApplication(object):
 
         return requests.request(method.upper(), url, **kw)
 
-    def get_profile(self, params=None, headers=None):
+    def get_profile(self):
         url = ENDPOINTS['ME_V2']
-        response = self.make_request('GET', url, params=params, headers=headers)
+        response = self.make_request('GET', url)
         raise_for_error(response)
         json_response = response.json()
         return json_response
 
-    def get_companies(self, params=None):
-        url = ENDPOINTS['COMPANIES_V2']
-        response = self.make_request('GET', url, params=params)
+    def get_user_organizations(self):
+        url = ENDPOINTS['USER_ORG_V2']
+        response = self.make_request('GET', url)
         raise_for_error(response)
         return response.json()
+
+    def get_organization(self, user_org):
+        url = ENDPOINTS['ORG_V2'] + '/' + user_org
+        response = self.make_request('GET', url)
+        raise_for_error(response)
+        return response.json()
+
 
     def submit_text_share(self, company_id=None, subject=None, text=None):
         # Basic text share
@@ -170,10 +178,11 @@ class LinkedInApplication(object):
 
         post = {
             "distribution": {
-                "linkedInDistributionTarget": {} # required to make publicly visible
+                "linkedInDistributionTarget": {
+                    "visibleToGuest": True
+                } # required to make publicly visible
             },
             "owner": owner_id,
-            "subject": subject,
             "text": {
                 "text": text
             }
