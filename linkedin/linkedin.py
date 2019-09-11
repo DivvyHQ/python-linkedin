@@ -166,8 +166,7 @@ class LinkedInApplication(object):
         raise_for_error(response)
         return response.json()
 
-
-    def submit_text_share(self, company_id=None, subject=None, text=None):
+    def submit_text_share(self, company_id=None, subject='', text=None):
         # Basic text share
 
         if company_id:
@@ -183,6 +182,7 @@ class LinkedInApplication(object):
                 } # required to make publicly visible
             },
             "owner": owner_id,
+            "subject": subject,
             "text": {
                 "text": text
             }
