@@ -170,7 +170,7 @@ class LinkedInApplication(object):
         # Basic text share
 
         if company_id:
-            owner_id = company_id
+            owner_id = 'urn:li:organization:' + company_id
         else:
             owner = self.get_profile()
             owner_id = owner['id']
