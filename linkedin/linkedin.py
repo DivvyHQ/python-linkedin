@@ -126,7 +126,7 @@ class LinkedInApplication(object):
             self.authentication.token = AccessToken(token, None)
 
     def make_request(self, method, url, data=None, params=None, headers=None,
-                     timeout=60):
+                     timeout=60, auth_token=None):
         if headers is None:
             headers = {'x-li-format': 'json', 'Content-Type': 'application/json'}
         else:
@@ -137,13 +137,15 @@ class LinkedInApplication(object):
         kw = dict(data=data, params=params,
                   headers=headers, timeout=timeout)
 
-        if isinstance(self.authentication, LinkedInDeveloperAuthentication):
-            # Let requests_oauthlib.OAuth1 do *all* of the work here
-            auth = OAuth1(self.authentication.consumer_key, self.authentication.consumer_secret,
-                          self.authentication.user_token, self.authentication.user_secret)
-            kw.update({'auth': auth})
-        else:
-            params.update({'oauth2_access_token': self.authentication.token.access_token})
+        # if isinstance(self.authentication, LinkedInDeveloperAuthentication):
+        #     # Let requests_oauthlib.OAuth1 do *all* of the work here
+        #     auth = OAuth1(self.authentication.consumer_key, self.authentication.consumer_secret,
+        #                   self.authentication.user_token, self.authentication.user_secret)
+        #     kw.update({'auth': auth})
+        # else:
+        #     params.update({'oauth2_access_token': self.authentication.token.access_token})
+
+        params.update({'oauth2_access_token': auth_token})
 
         return requests.request(method.upper(), url, **kw)
 
@@ -166,7 +168,7 @@ class LinkedInApplication(object):
         raise_for_error(response)
         return response.json()
 
-    def submit_text_share(self, company_id=None, subject='', text=None):
+    def submit_text_share(self, company_id=None, subject='', text=None, auth_token=None):
         # Basic text share
 
         if company_id:
@@ -189,7 +191,7 @@ class LinkedInApplication(object):
         }
 
         url = ENDPOINTS['TEXT_SHARE_V2']
-        response = self.make_request('POST', url, data=json.dumps(post))
+        response = self.make_request('POST', url, data=json.dumps(post), auth_token=auth_token)
         raise_for_error(response)
         return response.json()
 
