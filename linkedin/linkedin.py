@@ -139,7 +139,8 @@ class LinkedInApplication(object):
 
         if auth_token is not None:
             # Pass in auth token explicitely for shares
-            params.update({'oauth2_access_token': auth_token})
+            # params.update({'oauth2_access_token': auth_token})
+            url = url + '?oauth2_access_token=' + auth_token
         else:
             if isinstance(self.authentication, LinkedInDeveloperAuthentication):
                 # Let requests_oauthlib.OAuth1 do *all* of the work here
@@ -148,7 +149,6 @@ class LinkedInApplication(object):
                 kw.update({'auth': auth})
             else:
                 params.update({'oauth2_access_token': self.authentication.token.access_token})
-
 
         return requests.request(method.upper(), url, **kw)
 
