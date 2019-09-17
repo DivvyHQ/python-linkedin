@@ -2,8 +2,6 @@
 from __future__ import unicode_literals
 import collections
 import contextlib
-import hashlib
-import random
 
 try:
     from urllib.parse import quote, quote_plus
@@ -47,62 +45,6 @@ class LinkedInDeveloperAuthentication(object):
         self.redirect_uri = redirect_uri
         self.permissions = permissions
 
-
-class LinkedInAuthentication(object):
-    """
-    Implements a standard OAuth 2.0 flow that involves redirection for users to
-    authorize the application to access account data.
-    """
-    AUTHORIZATION_URL = 'https://www.linkedin.com/uas/oauth2/authorization'
-    ACCESS_TOKEN_URL = 'https://www.linkedin.com/uas/oauth2/accessToken'
-
-    def __init__(self, key, secret, redirect_uri, permissions=[]):
-        self.key = key
-        self.secret = secret
-        self.redirect_uri = redirect_uri
-        self.permissions = permissions
-        self.state = None
-        self.authorization_code = None
-        self.token = None
-        self._error = None
-
-    @property
-    def authorization_url(self):
-        qd = {'response_type': 'code',
-              'client_id': self.key,
-              'scope': (' '.join(self.permissions)).strip(),
-              'state': self.state or self._make_new_state(),
-              'redirect_uri': self.redirect_uri}
-        # urlencode uses quote_plus when encoding the query string so,
-        # we ought to be encoding the qs by on our own.
-        qsl = ['%s=%s' % (quote(k), quote(v)) for k, v in qd.items()]
-        return '%s?%s' % (self.AUTHORIZATION_URL, '&'.join(qsl))
-
-    @property
-    def last_error(self):
-        return self._error
-
-    def _make_new_state(self):
-        self.state = hashlib.md5(
-            '{}{}'.format(random.randrange(0, 2 ** 63), self.secret).encode('utf8')
-        ).hexdigest()
-
-        return self.state
-
-    def get_access_token(self, timeout=60):
-        assert self.authorization_code, 'You must first get the authorization code'
-        qd = {'grant_type': 'authorization_code',
-              'code': self.authorization_code,
-              'redirect_uri': self.redirect_uri,
-              'client_id': self.key,
-              'client_secret': self.secret}
-        response = requests.post(self.ACCESS_TOKEN_URL, data=qd, timeout=timeout)
-        raise_for_error(response)
-        response = response.json()
-        self.token = AccessToken(response['access_token'], response['expires_in'])
-        return self.token
-
-
 class LinkedInSelector(object):
     @classmethod
     def parse(cls, selector):
@@ -128,9 +70,9 @@ class LinkedInApplication(object):
     def make_request(self, method, url, data=None, params=None, headers=None,
                      timeout=60, auth_token=None):
         if headers is None:
-            headers = {'x-li-format': 'json', 'Content-Type': 'application/json'}
+            headers = {'X-Restli-Protocol-Version': '2.0.0', 'Content-Type': 'application/json'}
         else:
-            headers.update({'x-li-format': 'json', 'Content-Type': 'application/json'})
+            headers.update({'X-Restli-Protocol-Version': '2.0.0', 'Content-Type': 'application/json'})
 
         if params is None:
             params = {}
@@ -140,14 +82,7 @@ class LinkedInApplication(object):
         if auth_token is not None:
             # Pass in auth token explicitely for shares
             # params.update({'oauth2_access_token': auth_token})
-            # url = url + '?oauth2_access_token=' + auth_token
-            url = 'https://api.linkedin.com/v2/shares?oauth2_access_token=AQWmU\
-                   OnALViRuLeKp19MJgiz51xNb8G1ryVHV_8rI58qzflNhGgdSaIAvtewF0bjL\
-                   mUjdrgwVdoBPJa2uxdLaIyykYqLSh3-5pHRyZ_jYaIklu_IDonhid_YIJIWC\
-                   Xoc0WF-3h7CHeaEfZ9SS5jVyEwRTuH4ELEYRql_sIvToJ-U_X1qQk1gQiHXY\
-                   y_TuJ0VT28iGPp1YTJd8TXppAR_h_Dh6nRMOeKFw2TBfY6xbCvKVohU1fQCm\
-                   VCjBeHrtKGoGRlk3mpVbqWcZwmPmBLdCNRQAzCIni99w6CTAtJz1SHZ2r4p2\
-                   GBwMNbBTZPmp5S8mj547Is_qllk8tWqUkQUF3za08dtYQ'
+            url = url + '?oauth2_access_token=' + auth_token
         else:
             if isinstance(self.authentication, LinkedInDeveloperAuthentication):
                 # Let requests_oauthlib.OAuth1 do *all* of the work here
@@ -214,7 +149,6 @@ class LinkedInApplication(object):
             author_id = author['id']
         else:
             author_id = company_id
-
 
         # Sharing a file requires that these steps happen in this order.
         # 1 Register image to be uploaded
