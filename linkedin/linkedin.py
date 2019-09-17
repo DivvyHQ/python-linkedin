@@ -11,7 +11,6 @@ except ImportError:
 import requests
 from requests_oauthlib import OAuth1
 
-from .exceptions import LinkedInError
 from .utils import to_utf8, raise_for_error, json, StringIO
 
 
